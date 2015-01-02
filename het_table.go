@@ -28,13 +28,19 @@ type HETTable struct {
 	IndexSize      int
 	BlockTableSize int
 
-	Table        []byte
-	FileIndicies []uint32
+	count    int
+	bitCount int
+	Hashes   []byte
+	Indicies []byte
+
+	AndMask uint64
+	OrMask  uint64
 }
 
 func (m *MPQ) readHETTable(r io.Reader) error {
 	het := &HETTable{}
 
+	// Read Header Information
 	header := make([]byte, extTableHeaderSize)
 	if _, err := r.Read(header); err != nil {
 		return err
@@ -60,21 +66,78 @@ func (m *MPQ) readHETTable(r io.Reader) error {
 	het.IndexSize = int(binary.LittleEndian.Uint32(buffer[24:28]))
 	het.BlockTableSize = int(binary.LittleEndian.Uint32(buffer[28:32]))
 
-	offset := 32
-	het.Table = make([]byte, het.TotalCount)
-	copy(het.Table, buffer[offset:offset+het.TotalCount])
-	offset += het.TotalCount
+	// Read Table Information
+	if het.HashEntrySize != 0x40 {
+		het.AndMask = 1 << uint(het.HashEntrySize)
+	}
+	het.AndMask -= 1
+	het.OrMask = 1 << uint(het.HashEntrySize-1)
 
-	// TODO: Read in file indicies
-	// Array of file indexes. Bit size of each entry is taken from dwTotalIndexSize.
-	// Table size is taken from dwHashTableSize.
+	het.count = het.TotalCount
+	if het.count == 0 {
+		het.count = (het.EntryCount * 4) / 3
+	}
+
+	maxValue := het.EntryCount
+	for maxValue > 0 {
+		maxValue >>= 1
+		het.bitCount++
+	}
+
+	het.Hashes = make([]byte, het.count)
+	het.Indicies = make([]byte, (het.count*het.bitCount+7)/8)
+	for i := 0; i < len(het.Indicies); i++ {
+		het.Indicies[i] = 0xFF
+	}
+
+	offset := 32
+	copy(het.Hashes, buffer[offset:offset+het.count])
+	offset += het.count
+	copy(het.Indicies, buffer[offset:offset+len(het.Indicies)])
 
 	m.HETTable = het
 	return nil
 }
 
+// Indexes reads the bit array from the het.Indicies and turns it into a uint array.
+func (h *HETTable) Indexes() []uint {
+	ret := make([]uint, h.count)
+
+	bitOffset := uint(8)
+	var curByte byte
+	byteIndex := 0
+	for i := 0; i < h.count; i++ {
+		for j := uint(0); j < uint(h.bitCount); j++ {
+			if bitOffset == 8 {
+				bitOffset = 0
+				curByte = h.Indicies[byteIndex]
+				byteIndex++
+			}
+
+			ret[i] |= (uint(curByte&(1<<bitOffset)) >> bitOffset) << uint(j)
+			bitOffset++
+		}
+	}
+
+	return ret
+}
+
+/*func printBin(b byte) {
+	for j := uint(8); j > 0; j-- {
+		fmt.Printf("%d", ((1<<(j-1))&b)>>(j-1))
+	}
+	fmt.Println()
+}
+
+func printBinUint(b uint) {
+	for j := uint(32); j > 0; j-- {
+		fmt.Printf("%d", ((1<<(j-1))&b)>>(j-1))
+	}
+	fmt.Println()
+}*/
+
 func decryptDecompressTable(r io.Reader, dataSize, compressedSize uint64, key uint32) ([]byte, error) {
-	crypted := make([]byte, compressedSize)
+	crypted := make([]byte, compressedSize-extTableHeaderSize)
 	if _, err := r.Read(crypted); err != nil {
 		return nil, err
 	}
