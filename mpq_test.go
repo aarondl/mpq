@@ -2,21 +2,32 @@ package mpq
 
 import (
 	"bytes"
+	"fmt"
+	"os"
 	"testing"
 )
 
 var m *MPQ
 
-func init() {
+func TestMain(main *testing.M) {
+	code := main.Run()
+	if m != nil {
+		m.Close()
+	}
+	os.Exit(code)
+}
+
+func setup() {
 	var err error
 	m, err = Open("Garden of Terror (72).StormReplay")
 	if err != nil {
 		panic("Could not open test replay: " + err.Error())
 	}
-	defer m.Close()
 }
 
 func TestMPQHeader(t *testing.T) {
+	setup()
+
 	if m.Header.HeaderSize != 208 {
 		t.Errorf("Incorrect Value for HeaderSize: %d", m.Header.HeaderSize)
 	}
@@ -106,6 +117,8 @@ func TestMPQHeader(t *testing.T) {
 }
 
 func TestUserData(t *testing.T) {
+	setup()
+
 	if m.UserData.MaxSize != 512 {
 		t.Errorf("Incorrect Value for MaxSize: %d", m.UserData.MaxSize)
 	}
@@ -137,6 +150,8 @@ func TestUserData(t *testing.T) {
 }
 
 func TestHETTable(t *testing.T) {
+	setup()
+
 	if m.HETTable.Version != 1 {
 		t.Errorf("Incorrect Value for Version: %d", m.HETTable.Version)
 	}
@@ -183,6 +198,8 @@ func TestHETTable(t *testing.T) {
 }
 
 func TestBETTable(t *testing.T) {
+	setup()
+
 	if m.BETTable.Version != 1 {
 		t.Errorf("Incorrect Value for Version: %d", m.BETTable.Version)
 	}
@@ -246,4 +263,6 @@ func TestBETTable(t *testing.T) {
 	if m.BETTable.FlagCount != 2 {
 		t.Errorf("Incorrect Value for FlagCount: %d", m.BETTable.FlagCount)
 	}
+
+	fmt.Printf("% 02X\n", m.BETTable.Flags)
 }

@@ -40,10 +40,8 @@ type BETTable struct {
 	FlagCount int
 	Flags     []uint32
 
-	// File table. Size of each entry is taken from dwTableEntrySize.
-	// Size of the table is (dwTableEntrySize * dwMaxFileCount), round up to 8.
-
-	// Array of BET hashes. Table size is taken from dwMaxFileCount from HET table
+	TableEntries []byte
+	Hashes       []byte
 }
 
 func (m *MPQ) readBETTable(r io.Reader) error {
@@ -85,6 +83,39 @@ func (m *MPQ) readBETTable(r io.Reader) error {
 	bet.HashArraySize = int(binary.LittleEndian.Uint32(buffer[68:72]))
 	bet.FlagCount = int(binary.LittleEndian.Uint32(buffer[72:76]))
 
+	offset := 76
+	bet.Flags = make([]uint32, bet.FlagCount)
+	for i := 0; i < bet.FlagCount; i++ {
+		bet.Flags[i] = binary.LittleEndian.Uint32(buffer[offset : offset+4])
+		offset += 4
+	}
+
+	bet.TableEntries = make([]byte, (bet.TableEntrySize*bet.EntryCount+7)/8)
+	copy(bet.TableEntries, buffer[offset:offset+len(bet.TableEntries)])
+	offset += len(bet.TableEntries)
+
+	bet.Hashes = make([]byte, (bet.HashSizeTotal*bet.EntryCount+7)/8)
+	copy(bet.TableEntries, buffer[offset:offset+len(bet.Hashes)])
+
 	m.BETTable = bet
+	return nil
+}
+
+// BETTableEntry is a table entry.
+type BETTableEntry struct {
+	NameHash2      []byte
+	FilePosition   uint64
+	FileSize       uint64
+	CompressedSize uint64
+	FlagIndex      uint32
+	Flags          uint32
+}
+
+// Entries parses the TableEntries Bit Array into an Array of BETTableEntry.
+func (b *BETTable) Entries() []BETTableEntry {
+	for i := 0; i < b.EntryCount; i++ {
+
+	}
+
 	return nil
 }

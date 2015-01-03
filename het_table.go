@@ -122,20 +122,6 @@ func (h *HETTable) Indexes() []uint {
 	return ret
 }
 
-/*func printBin(b byte) {
-	for j := uint(8); j > 0; j-- {
-		fmt.Printf("%d", ((1<<(j-1))&b)>>(j-1))
-	}
-	fmt.Println()
-}
-
-func printBinUint(b uint) {
-	for j := uint(32); j > 0; j-- {
-		fmt.Printf("%d", ((1<<(j-1))&b)>>(j-1))
-	}
-	fmt.Println()
-}*/
-
 func decryptDecompressTable(r io.Reader, dataSize, compressedSize uint64, key uint32) ([]byte, error) {
 	crypted := make([]byte, compressedSize-extTableHeaderSize)
 	if _, err := r.Read(crypted); err != nil {
