@@ -3,6 +3,7 @@ package mpq
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -100,26 +101,19 @@ func (m *MPQ) readHETTable(r io.Reader) error {
 }
 
 // Indexes reads the bit array from the het.Indicies and turns it into a uint array.
-func (h *HETTable) Indexes() []uint {
+func (h *HETTable) Indexes() ([]uint, error) {
 	ret := make([]uint, h.count)
+	b := newBitArray(h.Indicies)
 
-	bitOffset := uint(8)
-	var curByte byte
-	byteIndex := 0
 	for i := 0; i < h.count; i++ {
-		for j := uint(0); j < uint(h.bitCount); j++ {
-			if bitOffset == 8 {
-				bitOffset = 0
-				curByte = h.Indicies[byteIndex]
-				byteIndex++
-			}
-
-			ret[i] |= (uint(curByte&(1<<bitOffset)) >> bitOffset) << uint(j)
-			bitOffset++
+		if val, err := b.next(h.bitCount); err != nil {
+			return nil, errors.New("HET Table ended unexpectedly.")
+		} else {
+			ret[i] = uint(val)
 		}
 	}
 
-	return ret
+	return ret, nil
 }
 
 func decryptDecompressTable(r io.Reader, dataSize, compressedSize uint64, key uint32) ([]byte, error) {

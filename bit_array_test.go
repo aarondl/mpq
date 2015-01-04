@@ -98,4 +98,8 @@ func TestBitArray_NextBytes(t *testing.T) {
 	} else if bytes.Compare([]byte{0x00}, val) != 0 {
 		t.Errorf("Wrong Value: % 02X", val)
 	}
+
+	if err = b.nextBytes(val, 6); err == nil {
+		t.Error("Expected an overflow error.")
+	}
 }

@@ -3,12 +3,15 @@ package mpq
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 )
 
 var (
 	headerBETTable = []byte("BET\x1A")
+
+	errorBETTableBounds = errors.New("BET Table ended unexpectedly.")
 )
 
 type BETTable struct {
@@ -95,7 +98,7 @@ func (m *MPQ) readBETTable(r io.Reader) error {
 	offset += len(bet.TableEntries)
 
 	bet.Hashes = make([]byte, (bet.HashSizeTotal*bet.EntryCount+7)/8)
-	copy(bet.TableEntries, buffer[offset:offset+len(bet.Hashes)])
+	copy(bet.Hashes, buffer[offset:offset+len(bet.Hashes)])
 
 	m.BETTable = bet
 	return nil
@@ -103,7 +106,7 @@ func (m *MPQ) readBETTable(r io.Reader) error {
 
 // BETTableEntry is a table entry.
 type BETTableEntry struct {
-	NameHash2      []byte
+	NameHash2      uint64
 	FilePosition   uint64
 	FileSize       uint64
 	CompressedSize uint64
@@ -111,11 +114,47 @@ type BETTableEntry struct {
 	Flags          uint32
 }
 
-// Entries parses the TableEntries Bit Array into an Array of BETTableEntry.
-func (b *BETTable) Entries() []BETTableEntry {
-	for i := 0; i < b.EntryCount; i++ {
+// Entries parses the TableEntries and Hashes bit arrays into an array of BETTableEntry.
+func (b *BETTable) Entries() ([]BETTableEntry, error) {
+	entries := make([]BETTableEntry, b.EntryCount)
+	barr := newBitArray(b.TableEntries)
 
+	var val int64
+	var err error
+	for i := 0; i < b.EntryCount; i++ {
+		entry := &entries[i]
+
+		if val, err = barr.next(b.BitCountFilePos); err != nil {
+			return nil, errorBETTableBounds
+		}
+		entry.FilePosition = uint64(val)
+
+		if val, err = barr.next(b.BitCountFileSize); err != nil {
+			return nil, errorBETTableBounds
+		}
+		entry.FileSize = uint64(val)
+
+		if val, err = barr.next(b.BitCountCmpSize); err != nil {
+			return nil, errorBETTableBounds
+		}
+		entry.CompressedSize = uint64(val)
+
+		if val, err = barr.next(b.BitCountFlagIndex); err != nil {
+			return nil, errorBETTableBounds
+		}
+		entry.FlagIndex = uint32(val)
+
+		entry.Flags = b.Flags[entry.FlagIndex]
 	}
 
-	return nil
+	barr = newBitArray(b.Hashes)
+	for i := 0; i < b.EntryCount; i++ {
+		if val, err = barr.next(b.HashSizeTotal); err != nil {
+			return nil, errorBETTableBounds
+		}
+
+		entries[i].NameHash2 = uint64(val)
+	}
+
+	return entries, nil
 }
