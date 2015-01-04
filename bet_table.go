@@ -61,7 +61,7 @@ func (m *MPQ) readBETTable(r io.Reader) error {
 	bet.Version = int(binary.LittleEndian.Uint32(header[4:8]))
 	bet.DataSize = int(binary.LittleEndian.Uint32(header[8:12]))
 
-	buffer, err := decryptDecompressTable(r, uint64(bet.DataSize), m.Header.BETTableSize64, cryptKeyBlockTable)
+	buffer, err := decryptDecompressExtTable(r, uint64(bet.DataSize), m.Header.BETTableSize64, cryptKeyBlockTable)
 	if err != nil {
 		return err
 	}

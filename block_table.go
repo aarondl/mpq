@@ -1,6 +1,9 @@
 package mpq
 
-import "io"
+import (
+	"encoding/binary"
+	"io"
+)
 
 const (
 	fileFlagImplode    = 0x00000100 // File is compressed using PKWARE Data compression library
@@ -15,12 +18,49 @@ const (
 )
 
 type BlockTable struct {
-	FilePos        int
-	CompressedSize int
-	FileSize       int
-	Flags          int
+	EntryCount int
+	Table      []byte
+}
+
+type BlockTableEntry struct {
+	FilePos        uint32
+	CompressedSize uint32
+	FileSize       uint32
+	Flags          uint32
 }
 
 func (m *MPQ) readBlockTable(r io.Reader) error {
+	b := &BlockTable{EntryCount: m.Header.BlockTableSize}
+
+	size := uint64(m.Header.BlockTableSize)
+	compressedSize := m.Header.BlockTableSize64
+
+	var err error
+	if b.Table, err = decryptDecompressTable(r, size, compressedSize, cryptKeyBlockTable); err != nil {
+		return err
+	}
+
+	m.BlockTable = b
 	return nil
+}
+
+// Entries retrieves all the hash table entries.
+func (b *BlockTable) Entries() []BlockTableEntry {
+	offset := 0
+
+	entries := make([]BlockTableEntry, b.EntryCount)
+	for i := 0; i < b.EntryCount; i++ {
+		entry := &entries[i]
+
+		entry.FilePos = binary.LittleEndian.Uint32(b.Table[offset : offset+4])
+		offset += 4
+		entry.CompressedSize = binary.LittleEndian.Uint32(b.Table[offset : offset+4])
+		offset += 4
+		entry.FileSize = binary.LittleEndian.Uint32(b.Table[offset : offset+4])
+		offset += 4
+		entry.Flags = binary.LittleEndian.Uint32(b.Table[offset : offset+4])
+		offset += 4
+	}
+
+	return entries
 }

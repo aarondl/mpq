@@ -89,7 +89,7 @@ func OpenReader(reader io.ReadSeeker) (*MPQ, error) {
 	}
 
 	if m.Header.HashTablePos != 0 || m.Header.HashTablePosHi != 0 {
-		pos := (int64(m.Header.HashTablePosHi) << 32) | int64(m.Header.HashTablePos)
+		pos := offset + ((int64(m.Header.HashTablePosHi) << 32) | int64(m.Header.HashTablePos))
 		if _, err = reader.Seek(pos, 0); err != nil {
 			return nil, err
 		}
@@ -99,7 +99,7 @@ func OpenReader(reader io.ReadSeeker) (*MPQ, error) {
 	}
 
 	if m.Header.BlockTablePos != 0 || m.Header.BlockTablePosHi != 0 {
-		pos := (int64(m.Header.BlockTablePos) << 32) | int64(m.Header.BlockTablePosHi)
+		pos := offset + ((int64(m.Header.BlockTablePosHi) << 32) | int64(m.Header.BlockTablePos))
 		if _, err = reader.Seek(pos, 0); err != nil {
 			return nil, err
 		}

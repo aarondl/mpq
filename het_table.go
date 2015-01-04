@@ -53,7 +53,7 @@ func (m *MPQ) readHETTable(r io.Reader) error {
 	het.Version = int(binary.LittleEndian.Uint32(header[4:8]))
 	het.DataSize = int(binary.LittleEndian.Uint32(header[8:12]))
 
-	buffer, err := decryptDecompressTable(r, uint64(het.DataSize), m.Header.HETTableSize64, cryptKeyHashTable)
+	buffer, err := decryptDecompressExtTable(r, uint64(het.DataSize), m.Header.HETTableSize64, cryptKeyHashTable)
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (h *HETTable) Indexes() ([]uint, error) {
 	return ret, nil
 }
 
-func decryptDecompressTable(r io.Reader, dataSize, compressedSize uint64, key uint32) ([]byte, error) {
+func decryptDecompressExtTable(r io.Reader, dataSize, compressedSize uint64, key uint32) ([]byte, error) {
 	crypted := make([]byte, compressedSize-extTableHeaderSize)
 	if _, err := r.Read(crypted); err != nil {
 		return nil, err
