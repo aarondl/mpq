@@ -1,4 +1,14 @@
-// Package mpq provides read-only access to an MPQ file.
+/*
+Package mpq provides read-only access to an MPQ file.
+
+Although this package may seem
+complete and wonderful I assure you it is not. There are a great many MPQ files with protections
+in them (typically mangled by third party tools not related to the creators of MPQ files) that
+cannot be handled by this package.
+
+Furthermore there are a number of strange special cases and legacy situations that can arise
+for MPQ files, and as such these special cases and odd MPQ files may also fail to load.
+*/
 package mpq
 
 import (
@@ -19,6 +29,7 @@ type MPQ struct {
 	HETTable       *HETTable
 	HashTable      *HashTable
 	BlockTable     *BlockTable
+	HiBlockTable   *HiBlockTable
 	FileAttributes *FileAttributes
 }
 
@@ -106,6 +117,20 @@ func OpenReader(reader io.ReadSeeker) (*MPQ, error) {
 		if err = m.readBlockTable(reader); err != nil {
 			return nil, err
 		}
+	}
+
+	if m.Header.HiBlockTablePos != 0 {
+		pos := offset + int64(m.Header.HiBlockTablePos)
+		if _, err = reader.Seek(pos, 0); err != nil {
+			return nil, err
+		}
+		if err = m.readHiBlockTable(reader); err != nil {
+			return nil, err
+		}
+	}
+
+	if err = m.buildFileList(); err != nil {
+		return nil, err
 	}
 
 	return m, nil
