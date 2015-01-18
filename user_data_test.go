@@ -39,7 +39,7 @@ func TestUserData(t *testing.T) {
 		t.Error(err)
 	}
 
-	if bytes.Compare(userData, userDataFromReader) != 0 {
+	if bytes.Compare(userData, userDataFromReader[:len(userData)]) != 0 {
 		t.Error("User data contains wrong value.")
 	}
 }

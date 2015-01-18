@@ -1,7 +1,6 @@
 package mpq
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 	"testing"
@@ -31,8 +30,6 @@ func TestFile_Files(t *testing.T) {
 	if err != nil {
 		t.Fatal("Could not retrieve file list:", err)
 	}
-
-	fmt.Println(files)
 
 	if len(fileTest) != len(files) {
 		t.Fatal("Length of the files are different:", len(fileTest), len(files))

@@ -5,6 +5,8 @@ import (
 	"io"
 )
 
+const userDataHeaderSize = 16
+
 // UserData is additional data inside the MPQ.
 type UserData struct {
 	UserDataHeader
@@ -33,7 +35,7 @@ func (m *MPQ) readUserData(r io.Reader, offset int64) error {
 	userData.HeaderOffset = int(binary.LittleEndian.Uint32(buffer[4:8]))
 	userData.UserDataHeaderSize = int(binary.LittleEndian.Uint32(buffer[8:12]))
 
-	userData.offset = offset + 4 // Offset 4 bytes to avoid header.
+	userData.offset = offset + userDataHeaderSize // Offset 4 bytes to avoid header.
 
 	m.UserData = userData
 	return nil
