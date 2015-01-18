@@ -49,26 +49,32 @@ func TestFile_Files(t *testing.T) {
 }
 
 func TestFile_FileInfo(t *testing.T) {
-	m = nil
+	m = &MPQ{}
 
 	file, err := m.fileInfo("(listfile)")
-	if err == nil || strings.Contains(err.Error(), "HET, BET, Hash and Block") {
+	if err == nil {
 		t.Error(`Expected an error about "HET, BET, Hash and Block"`)
+	} else if !strings.Contains(err.Error(), "HET, BET, Hash and Block") {
+		t.Error(err)
 	}
 
 	setup()
 
 	file, err = m.fileInfo("(listfile)")
-	if file == nil || err != nil {
-		t.Error("Expected HET and BET lookup to succeed.")
+	if err != nil {
+		t.Error("Expected HET and BET lookup to succeed:", err)
+	} else if file == nil {
+		t.Error("File is nil.")
 	}
 
 	m.BETTable = nil
 	m.HETTable = nil
 
 	file, err = m.fileInfo("(listfile)")
-	if file == nil || err != nil {
-		t.Error("Expected Hash and Block lookup to succeed.")
+	if err != nil {
+		t.Error("Expected Hash and Block lookup to succeed:", err)
+	} else if file == nil {
+		t.Error("File is nil.")
 	}
 
 	m.Close()

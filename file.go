@@ -142,7 +142,7 @@ func (m *MPQ) buildFileList() error {
 func (m *MPQ) fileInfo(name string) (*File, error) {
 	if m.HETTable != nil && m.BETTable != nil {
 		return m.findFromHETAndBET(name)
-	} else if m.HashTable != nil && m.BETTable != nil {
+	} else if m.HashTable != nil && m.BlockTable != nil {
 		return m.findFromHashAndBlock(name)
 	}
 
@@ -204,7 +204,6 @@ func (m *MPQ) findFromHashAndBlock(name string) (*File, error) {
 	blockTableEntries := m.BlockTable.Entries()
 
 	var blockEntry *BlockTableEntry
-	fmt.Println(start)
 	for i := int(start); i < len(hashTableEntries); i++ {
 		entry := &hashTableEntries[i]
 		if entry.BlockIndex == 0xFFFFFFFF {
