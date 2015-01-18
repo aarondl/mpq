@@ -8,11 +8,12 @@ import (
 // UserData is additional data inside the MPQ.
 type UserData struct {
 	UserDataHeader
-	Data []byte
 }
 
 type UserDataHeader struct {
-	// Maximum size of user data
+	// offset off the user data.
+	offset int64
+	// MaxSize of user data
 	MaxSize int
 	// Offset of MPQ Header, relative to the begin of this header.
 	HeaderOffset int
@@ -20,7 +21,7 @@ type UserDataHeader struct {
 	UserDataHeaderSize int
 }
 
-func (m *MPQ) readUserData(r io.Reader) error {
+func (m *MPQ) readUserData(r io.Reader, offset int64) error {
 	buffer := make([]byte, 12)
 	if _, err := r.Read(buffer); err != nil {
 		return err
@@ -32,15 +33,18 @@ func (m *MPQ) readUserData(r io.Reader) error {
 	userData.HeaderOffset = int(binary.LittleEndian.Uint32(buffer[4:8]))
 	userData.UserDataHeaderSize = int(binary.LittleEndian.Uint32(buffer[8:12]))
 
-	userData.Data = make([]byte, userData.MaxSize)
-	if _, err := r.Read(userData.Data); err != nil {
-		return err
-	}
+	userData.offset = offset + 4 // Offset 4 bytes to avoid header.
 
 	m.UserData = userData
 	return nil
 }
 
-func (u *UserData) decodeUserData(r io.Reader) error {
-	return nil
+// OpenUserData returns a reader that can be used to read the user data.
+func (m *MPQ) OpenUserData() (io.Reader, error) {
+	_, err := m.reader.Seek(m.UserData.offset, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return io.LimitReader(m.reader, int64(m.UserData.MaxSize)), nil
 }

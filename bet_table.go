@@ -45,6 +45,8 @@ type BETTable struct {
 
 	TableEntries []byte
 	Hashes       []byte
+
+	entries []BETTableEntry
 }
 
 func (m *MPQ) readBETTable(r io.Reader) error {
@@ -116,6 +118,9 @@ type BETTableEntry struct {
 
 // Entries parses the TableEntries and Hashes bit arrays into an array of BETTableEntry.
 func (b *BETTable) Entries() ([]BETTableEntry, error) {
+	if b.entries != nil {
+		return b.entries, nil
+	}
 	entries := make([]BETTableEntry, b.EntryCount)
 	barr := newBitArray(b.TableEntries)
 
@@ -156,5 +161,6 @@ func (b *BETTable) Entries() ([]BETTableEntry, error) {
 		entries[i].NameHash2 = uint64(val)
 	}
 
+	b.entries = entries
 	return entries, nil
 }

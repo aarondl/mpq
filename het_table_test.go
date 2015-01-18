@@ -20,8 +20,8 @@ func TestHETTable(t *testing.T) {
 	if m.HETTable.EntryCount != 14 {
 		t.Errorf("Incorrect Value for EntryCount: %d", m.HETTable.EntryCount)
 	}
-	if m.HETTable.TotalCount != 18 {
-		t.Errorf("Incorrect Value for TotalCount: %X", m.HETTable.TotalCount)
+	if m.HETTable.HashTableSize != 18 {
+		t.Errorf("Incorrect Value for HashTableSize: %X", m.HETTable.HashTableSize)
 	}
 	if m.HETTable.HashEntrySize != 0x40 {
 		t.Errorf("Incorrect Value for HashEntrySize: %X", m.HETTable.HashEntrySize)

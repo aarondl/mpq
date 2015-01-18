@@ -2,6 +2,7 @@ package mpq
 
 import (
 	"bytes"
+	"io/ioutil"
 	"testing"
 )
 
@@ -28,12 +29,17 @@ func TestUserData(t *testing.T) {
 		0x04,
 	}
 
-	if bytes.Compare(userData, m.UserData.Data[:len(userData)]) != 0 {
-		t.Error("User data contains wrong value.")
+	reader, err := m.OpenUserData()
+	if err != nil {
+		t.Error("Unexpected error:", err)
 	}
-	for i := len(userData); i < m.UserData.MaxSize; i++ {
-		if m.UserData.Data[i] != 0 {
-			t.Error("Expected the rest of user data to be blank.")
-		}
+
+	userDataFromReader, err := ioutil.ReadAll(reader)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if bytes.Compare(userData, userDataFromReader) != 0 {
+		t.Error("User data contains wrong value.")
 	}
 }

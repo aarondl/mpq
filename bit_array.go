@@ -123,3 +123,13 @@ func printBinUint(b uint) {
 	}
 	fmt.Println()
 }
+
+func printBinUint64(b uint64) {
+	for j := uint(64); j > 0; j-- {
+		if j%4 == 0 {
+			fmt.Print(" ")
+		}
+		fmt.Printf("%d", ((1<<(j-1))&b)>>(j-1))
+	}
+	fmt.Println()
+}

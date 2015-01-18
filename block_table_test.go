@@ -28,8 +28,8 @@ func TestBlockTable(t *testing.T) {
 	}
 
 	for i, test := range testEntries {
-		if entries[i].FilePos != test.FilePos {
-			t.Errorf("%d> FilePos wrong: %02X", i, entries[i].FilePos)
+		if entries[i].FilePosition != test.FilePosition {
+			t.Errorf("%d> FilePos wrong: %02X", i, entries[i].FilePosition)
 		}
 		if entries[i].CompressedSize != test.CompressedSize {
 			t.Errorf("%d> CompressedSize wrong: %02X", i, entries[i].CompressedSize)

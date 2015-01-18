@@ -15,6 +15,8 @@ const (
 type HashTable struct {
 	EntryCount int
 	Table      []byte
+
+	entries []HashTableEntry
 }
 
 type HashTableEntry struct {
@@ -44,6 +46,9 @@ func (m *MPQ) readHashTable(r io.Reader) error {
 
 // Entries retrieves all the hash table entries.
 func (h *HashTable) Entries() []HashTableEntry {
+	if h.entries != nil {
+		return h.entries
+	}
 	offset := 0
 
 	entries := make([]HashTableEntry, h.EntryCount)
@@ -64,6 +69,7 @@ func (h *HashTable) Entries() []HashTableEntry {
 		offset += 4
 	}
 
+	h.entries = entries
 	return entries
 }
 

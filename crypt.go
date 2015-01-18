@@ -1,6 +1,9 @@
 package mpq
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"io"
+)
 
 const (
 	cryptKeyHashTable  = 0xC3AF3770
@@ -32,6 +35,39 @@ func initCrypto() {
 			cryptTable[index2] = tmp1 | tmp2
 		}
 	}
+}
+
+type decryptReader struct {
+	reader            io.Reader
+	key1, key2, value uint32
+}
+
+func newDecryptReader(reader io.Reader, key1 uint32) *decryptReader {
+	initCrypto()
+
+	return &decryptReader{
+		reader: reader,
+		key1:   key1,
+		key2:   0xEEEEEEEE,
+	}
+}
+
+func (d *decryptReader) Read(buf []byte) (n int, err error) {
+	n, err = d.reader.Read(buf)
+
+	length := n >> 2
+	for i := 0; i < length*4; i += 4 {
+		d.key2 += cryptTable[0x400+(d.key1&0xFF)]
+
+		value := binary.LittleEndian.Uint32(buf[i:])
+		value ^= (d.key1 + d.key2)
+		binary.LittleEndian.PutUint32(buf[i:], value)
+
+		d.key1 = ((^d.key1 << 0x15) + 0x11111111) | (d.key1 >> 0x0B)
+		d.key2 = value + d.key2 + (d.key2 << 5) + 3
+	}
+
+	return n, err
 }
 
 func decryptBlock(block []byte, length int, key1 uint32) {

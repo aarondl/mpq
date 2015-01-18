@@ -22,7 +22,7 @@ type HETTable struct {
 
 	TableSize      int
 	EntryCount     int
-	TotalCount     int
+	HashTableSize  int
 	HashEntrySize  int
 	IndexSizeTotal int
 	IndexSizeExtra int
@@ -60,7 +60,7 @@ func (m *MPQ) readHETTable(r io.Reader) error {
 
 	het.TableSize = int(binary.LittleEndian.Uint32(buffer[0:4]))
 	het.EntryCount = int(binary.LittleEndian.Uint32(buffer[4:8]))
-	het.TotalCount = int(binary.LittleEndian.Uint32(buffer[8:12]))
+	het.HashTableSize = int(binary.LittleEndian.Uint32(buffer[8:12]))
 	het.HashEntrySize = int(binary.LittleEndian.Uint32(buffer[12:16]))
 	het.IndexSizeTotal = int(binary.LittleEndian.Uint32(buffer[16:20]))
 	het.IndexSizeExtra = int(binary.LittleEndian.Uint32(buffer[20:24]))
@@ -69,12 +69,12 @@ func (m *MPQ) readHETTable(r io.Reader) error {
 
 	// Read Table Information
 	if het.HashEntrySize != 0x40 {
-		het.AndMask = 1 << uint(het.HashEntrySize)
+		het.AndMask = uint64(1) << uint(het.HashEntrySize)
 	}
 	het.AndMask -= 1
-	het.OrMask = 1 << uint(het.HashEntrySize-1)
+	het.OrMask = uint64(1) << uint(het.HashEntrySize-1)
 
-	het.count = het.TotalCount
+	het.count = het.HashTableSize
 	if het.count == 0 {
 		het.count = (het.EntryCount * 4) / 3
 	}
