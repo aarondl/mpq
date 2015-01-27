@@ -8,6 +8,9 @@ cannot be handled by this package.
 
 Furthermore there are a number of strange special cases and legacy situations that can arise
 for MPQ files, and as such these special cases and odd MPQ files may also fail to load.
+
+There are also ancient forms of compression used in many MPQ files and those are not supported
+since they are non-trivial to port.
 */
 package mpq
 

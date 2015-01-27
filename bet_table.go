@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+
+	"github.com/aarondl/bitstream"
 )
 
 var (
@@ -122,29 +124,29 @@ func (b *BETTable) Entries() ([]BETTableEntry, error) {
 		return b.entries, nil
 	}
 	entries := make([]BETTableEntry, b.EntryCount)
-	barr := newBitArray(b.TableEntries)
+	barr := bitstream.New(bytes.NewBuffer(b.TableEntries))
 
-	var val int64
+	var val uint64
 	var err error
 	for i := 0; i < b.EntryCount; i++ {
 		entry := &entries[i]
 
-		if val, err = barr.next(b.BitCountFilePos); err != nil {
+		if val, err = barr.Bits(b.BitCountFilePos); err != nil {
 			return nil, errorBETTableBounds
 		}
-		entry.FilePosition = uint64(val)
+		entry.FilePosition = val
 
-		if val, err = barr.next(b.BitCountFileSize); err != nil {
+		if val, err = barr.Bits(b.BitCountFileSize); err != nil {
 			return nil, errorBETTableBounds
 		}
-		entry.FileSize = uint64(val)
+		entry.FileSize = val
 
-		if val, err = barr.next(b.BitCountCmpSize); err != nil {
+		if val, err = barr.Bits(b.BitCountCmpSize); err != nil {
 			return nil, errorBETTableBounds
 		}
-		entry.CompressedSize = uint64(val)
+		entry.CompressedSize = val
 
-		if val, err = barr.next(b.BitCountFlagIndex); err != nil {
+		if val, err = barr.Bits(b.BitCountFlagIndex); err != nil {
 			return nil, errorBETTableBounds
 		}
 		entry.FlagIndex = uint32(val)
@@ -152,13 +154,13 @@ func (b *BETTable) Entries() ([]BETTableEntry, error) {
 		entry.Flags = b.Flags[entry.FlagIndex]
 	}
 
-	barr = newBitArray(b.Hashes)
+	barr = bitstream.New(bytes.NewBuffer(b.Hashes))
 	for i := 0; i < b.EntryCount; i++ {
-		if val, err = barr.next(b.HashSizeTotal); err != nil {
+		if val, err = barr.Bits(b.HashSizeTotal); err != nil {
 			return nil, errorBETTableBounds
 		}
 
-		entries[i].NameHash2 = uint64(val)
+		entries[i].NameHash2 = val
 	}
 
 	b.entries = entries

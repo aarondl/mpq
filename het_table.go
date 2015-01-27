@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+
+	"github.com/aarondl/bitstream"
 )
 
 const (
@@ -103,10 +105,10 @@ func (m *MPQ) readHETTable(r io.Reader) error {
 // Indexes reads the bit array from the het.Indicies and turns it into a uint array.
 func (h *HETTable) Indexes() ([]uint, error) {
 	ret := make([]uint, h.count)
-	b := newBitArray(h.Indicies)
+	b := bitstream.New(bytes.NewBuffer(h.Indicies))
 
 	for i := 0; i < h.count; i++ {
-		if val, err := b.next(h.bitCount); err != nil {
+		if val, err := b.Bits(h.bitCount); err != nil {
 			return nil, errors.New("HET Table ended unexpectedly.")
 		} else {
 			ret[i] = uint(val)
