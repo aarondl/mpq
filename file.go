@@ -23,8 +23,9 @@ const (
 )
 
 var (
-	FileNotFound = errors.New("File not found in archive.")
-	FileDeleted  = errors.New("File has been removed from the archive.")
+	ErrFileNotFound = errors.New("File not found in archive.")
+	ErrFileDeleted  = errors.New("File has been removed from the archive.")
+	ErrFileEmpty    = errors.New("File is empty.")
 )
 
 // File represents a file in the MPQ archive.
@@ -44,13 +45,17 @@ func (m *MPQ) Open(filename string) (io.Reader, error) {
 	var file *File
 	var ok bool
 	if file, ok = m.FileList[filename]; !ok {
-		return nil, FileNotFound
+		return nil, ErrFileNotFound
 	}
 
 	return m.open(file)
 }
 
 func (m *MPQ) open(file *File) (io.Reader, error) {
+	if file.Position == 0 || file.FileSize == 0 || file.CompressedSize == 0 {
+		return nil, ErrFileEmpty
+	}
+
 	var err error
 	if _, err = m.reader.Seek(m.offset+int64(file.Position), 0); err != nil {
 		return nil, fmt.Errorf("Failed to seek to file position: %v", err)
@@ -59,7 +64,7 @@ func (m *MPQ) open(file *File) (io.Reader, error) {
 	reader := io.LimitReader(m.reader, int64(file.CompressedSize))
 
 	if file.Flags&fileFlagExists == 0 {
-		return nil, FileDeleted
+		return nil, ErrFileDeleted
 	}
 
 	if file.Flags&fileFlagSingleUnit == 0 {
@@ -94,7 +99,7 @@ func (m *MPQ) buildFileList() error {
 	var err error
 	var file *File
 
-	listInfo, err := m.fileInfo("(listfile)")
+	listInfo, err := m.FileInfo("(listfile)")
 	if err != nil {
 		return err
 	}
@@ -119,7 +124,7 @@ func (m *MPQ) buildFileList() error {
 
 	for i := 0; i < len(m.fileNames); i++ {
 		fileName := m.fileNames[i]
-		if file, err = m.fileInfo(fileName); err != nil {
+		if file, err = m.FileInfo(fileName); err != nil {
 			if i+1 != len(m.fileNames) {
 				m.fileNames[i], m.fileNames[i+1] = m.fileNames[i+1], m.fileNames[i]
 			}
@@ -138,8 +143,8 @@ func (m *MPQ) buildFileList() error {
 	return nil
 }
 
-// fileInfo attempts to get the file information for a filename.
-func (m *MPQ) fileInfo(name string) (*File, error) {
+// FileInfo attempts to get the file information for a filename.
+func (m *MPQ) FileInfo(name string) (*File, error) {
 	if m.HETTable != nil && m.BETTable != nil {
 		return m.findFromHETAndBET(name)
 	} else if m.HashTable != nil && m.BlockTable != nil {
@@ -183,7 +188,7 @@ func (m *MPQ) findFromHETAndBET(name string) (*File, error) {
 	}
 
 	if betEntry == nil {
-		return nil, FileNotFound
+		return nil, ErrFileNotFound
 	}
 
 	return &File{
@@ -216,7 +221,7 @@ func (m *MPQ) findFromHashAndBlock(name string) (*File, error) {
 	}
 
 	if blockEntry == nil {
-		return nil, FileNotFound
+		return nil, ErrFileNotFound
 	}
 
 	return &File{

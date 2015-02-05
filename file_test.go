@@ -1,6 +1,8 @@
 package mpq
 
 import (
+	"io"
+	"io/ioutil"
 	"sort"
 	"strings"
 	"testing"
@@ -45,10 +47,30 @@ func TestFile_Files(t *testing.T) {
 	}
 }
 
+func TestFile_Open(t *testing.T) {
+	setup()
+
+	file, err := m.Open("missingfile")
+	if err != ErrFileNotFound {
+		t.Error(err)
+	}
+
+	file, err = m.Open("(listfile)")
+	nbytes, err := io.Copy(ioutil.Discard, file)
+	if err != nil {
+		t.Error(err)
+	}
+
+	info, err := m.FileInfo("(listfile)")
+	if info.FileSize != uint64(nbytes) {
+		t.Error("Read:", nbytes, "wanted:", info.FileSize)
+	}
+}
+
 func TestFile_FileInfo(t *testing.T) {
 	m = &MPQ{}
 
-	file, err := m.fileInfo("(listfile)")
+	file, err := m.FileInfo("(listfile)")
 	if err == nil {
 		t.Error(`Expected an error about "HET, BET, Hash and Block"`)
 	} else if !strings.Contains(err.Error(), "HET, BET, Hash and Block") {
@@ -57,7 +79,7 @@ func TestFile_FileInfo(t *testing.T) {
 
 	setup()
 
-	file, err = m.fileInfo("(listfile)")
+	file, err = m.FileInfo("(listfile)")
 	if err != nil {
 		t.Error("Expected HET and BET lookup to succeed:", err)
 	} else if file == nil {
@@ -67,7 +89,7 @@ func TestFile_FileInfo(t *testing.T) {
 	m.BETTable = nil
 	m.HETTable = nil
 
-	file, err = m.fileInfo("(listfile)")
+	file, err = m.FileInfo("(listfile)")
 	if err != nil {
 		t.Error("Expected Hash and Block lookup to succeed:", err)
 	} else if file == nil {
