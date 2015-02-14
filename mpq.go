@@ -11,6 +11,34 @@ for MPQ files, and as such these special cases and odd MPQ files may also fail t
 
 There are also ancient forms of compression used in many MPQ files and those are not supported
 since they are non-trivial to port.
+
+What is here (in theory) works with all versions of unprotected MPQs even if the contained file contents
+can not be decompressed.
+
+The API is fairly straight forward. Call Open/OpenReader to get an MPQ file handle opened. MPQs contain
+file offsets so seeking is a necessity hence the references to ReadSeeker. Once opened you can list files
+with Files or open one known to exist with the Open on the mpq type. Although there is decompression
+and decryption happening inside the reader produced from open, it acts as any other reader.
+
+	m, err := mpq.Open("filename.mpq")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer m.Close()
+
+	files, err := m.Files()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Println("The following files are contained:", files)
+
+	listfile, err := m.Open("(listfile)")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	io.Copy(os.Stdout, listfile)
 */
 package mpq
 
