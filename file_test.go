@@ -115,7 +115,7 @@ func TestFile_FromHETAndBET(t *testing.T) {
 		t.Errorf("Wrong File Size: % 02X", file.FileSize)
 	}
 	if file.CompressedSize != 0x97 {
-		t.Error("Wrong File Compressed Size: % 02X", file.CompressedSize)
+		t.Errorf("Wrong File Compressed Size: % 02X", file.CompressedSize)
 	}
 	if file.Position != 0x6B991 {
 		t.Errorf("Wrong Position: % 02X", file.Position)
@@ -137,13 +137,13 @@ func TestFile_FromHashAndBlock(t *testing.T) {
 		t.Errorf("Wrong File Name: %s", file.Name)
 	}
 	if file.Locale != LocaleNeutral {
-		t.Error("Wrong Locale: % 02X", file.Locale)
+		t.Errorf("Wrong Locale: % 02X", file.Locale)
 	}
 	if file.FileSize != 0x104 {
 		t.Errorf("Wrong File Size: % 02X", file.FileSize)
 	}
 	if file.CompressedSize != 0x97 {
-		t.Error("Wrong File Compressed Size: % 02X", file.CompressedSize)
+		t.Errorf("Wrong File Compressed Size: % 02X", file.CompressedSize)
 	}
 	if file.Position != 0x6B991 {
 		t.Errorf("Wrong File Position: % 02X", file.Position)
