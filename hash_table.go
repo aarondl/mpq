@@ -12,6 +12,7 @@ const (
 	hashTableEntrySize = 16
 )
 
+// HashTable is the older style HETTable in the MPQ Header.
 type HashTable struct {
 	EntryCount int
 	Table      []byte
@@ -19,6 +20,7 @@ type HashTable struct {
 	entries []HashTableEntry
 }
 
+// HashTableEntry represents a row in the HashTable.
 type HashTableEntry struct {
 	Name1 uint32
 	Name2 uint32

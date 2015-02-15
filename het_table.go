@@ -18,6 +18,7 @@ var (
 	headerHETTable = []byte("HET\x1A")
 )
 
+// HETTable from the MPQ Header.
 type HETTable struct {
 	Version  int
 	DataSize int
@@ -73,7 +74,7 @@ func (m *MPQ) readHETTable(r io.Reader) error {
 	if het.HashEntrySize != 0x40 {
 		het.AndMask = uint64(1) << uint(het.HashEntrySize)
 	}
-	het.AndMask -= 1
+	het.AndMask--
 	het.OrMask = uint64(1) << uint(het.HashEntrySize-1)
 
 	het.count = het.HashTableSize
@@ -107,12 +108,14 @@ func (h *HETTable) Indexes() ([]uint, error) {
 	ret := make([]uint, h.count)
 	b := bitstream.New(bytes.NewBuffer(h.Indicies))
 
+	var val uint64
+	var err error
 	for i := 0; i < h.count; i++ {
-		if val, err := b.Bits(h.bitCount); err != nil {
-			return nil, errors.New("HET Table ended unexpectedly.")
-		} else {
-			ret[i] = uint(val)
+		if val, err = b.Bits(h.bitCount); err != nil {
+			return nil, errors.New("HET Table ended unexpectedly")
 		}
+
+		ret[i] = uint(val)
 	}
 
 	return ret, nil

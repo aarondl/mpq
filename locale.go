@@ -1,5 +1,6 @@
 package mpq
 
+// Locale codes for files inside the MPQ.
 const (
 	LocaleNeutral    = 0
 	LocaleChinese    = 0x404

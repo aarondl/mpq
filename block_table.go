@@ -5,6 +5,7 @@ import (
 	"io"
 )
 
+// BlockTable is the older style BETTable in the MPQ Header.
 type BlockTable struct {
 	EntryCount int
 	Table      []byte
@@ -12,6 +13,7 @@ type BlockTable struct {
 	entries []BlockTableEntry
 }
 
+// BlockTableEntry describes the attributes of a file in the BlockTable.
 type BlockTableEntry struct {
 	FilePosition   uint32
 	CompressedSize uint32

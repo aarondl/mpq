@@ -35,25 +35,25 @@ func newDecompressReader(reader io.Reader, length uint64) (io.Reader, error) {
 
 	switch compressionAlgorithm[0] {
 	case compressionHuffman:
-		return nil, errors.New("Huffman compression not supported.")
+		return nil, errors.New("Huffman compression not supported")
 	case compressionLZMA:
-		return nil, errors.New("LZMA compression not supported.")
+		return nil, errors.New("LZMA compression not supported")
 	case compressionZlib:
-		return nil, errors.New("Zlib compression not supported.")
+		return nil, errors.New("Zlib compression not supported")
 	case compressionBzip2:
 		return bzip2.NewReader(reader), nil
 	case compressionPkware:
-		return nil, errors.New("PKWare compression not supported.")
+		return nil, errors.New("PKWare compression not supported")
 	case compressionSparse:
-		return nil, errors.New("Sparse compression not supported.")
+		return nil, errors.New("Sparse compression not supported")
 	case compressionSparse | compressionZlib:
-		return nil, errors.New("Sparse+Zlib compression not supported.")
+		return nil, errors.New("Sparse+Zlib compression not supported")
 	case compressionSparse | compressionBzip2:
-		return nil, errors.New("Sparse+Bzip2 compression not supported.")
+		return nil, errors.New("Sparse+Bzip2 compression not supported")
 	case compressionADPCMono | compressionHuffman:
-		return nil, errors.New("ADPCMMono+Huffman compression not supported.")
+		return nil, errors.New("ADPCMMono+Huffman compression not supported")
 	case compressionADPCMStereo | compressionHuffman:
-		return nil, errors.New("ADPCMStereo+Huffman compression not supported.")
+		return nil, errors.New("ADPCMStereo+Huffman compression not supported")
 	}
 
 	return &decompressReader{
@@ -79,25 +79,25 @@ func decompress(dest []byte, src []byte) error {
 
 	switch compressionMethod {
 	case compressionHuffman:
-		return errors.New("Huffman compression not supported.")
+		return errors.New("Huffman compression not supported")
 	case compressionLZMA:
-		return errors.New("LZMA compression not supported.")
+		return errors.New("LZMA compression not supported")
 	case compressionZlib:
-		return errors.New("Zlib compression not supported.")
+		return errors.New("Zlib compression not supported")
 	case compressionBzip2:
-		return errors.New("Bzip2 compression not supported.")
+		return errors.New("Bzip2 compression not supported")
 	case compressionPkware:
-		return errors.New("PKWare compression not supported.")
+		return errors.New("PKWare compression not supported")
 	case compressionSparse:
-		return errors.New("Sparse compression not supported.")
+		return errors.New("Sparse compression not supported")
 	case compressionSparse | compressionZlib:
-		return errors.New("Sparse+Zlib compression not supported.")
+		return errors.New("Sparse+Zlib compression not supported")
 	case compressionSparse | compressionBzip2:
-		return errors.New("Sparse+Bzip2 compression not supported.")
+		return errors.New("Sparse+Bzip2 compression not supported")
 	case compressionADPCMono | compressionHuffman:
-		return errors.New("ADPCMMono+Huffman compression not supported.")
+		return errors.New("ADPCMMono+Huffman compression not supported")
 	case compressionADPCMStereo | compressionHuffman:
-		return errors.New("ADPCMStereo+Huffman compression not supported.")
+		return errors.New("ADPCMStereo+Huffman compression not supported")
 	}
 
 	return nil

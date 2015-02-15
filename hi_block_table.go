@@ -5,6 +5,10 @@ import (
 	"io"
 )
 
+// HiBlockTable is a strange legacy thing that allows the
+// BlockTable to reference offsets greater than 16 bits.
+// Although this code is present and it exists I doubt it works
+// be careful :D
 type HiBlockTable struct {
 	Table []uint16
 }

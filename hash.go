@@ -28,14 +28,14 @@ func blizz(filename string, hashType uint32) uint32 {
 }
 
 func jenkins2(filename string) uint64 {
-	var primary_hash uint32 = 1
-	var secondary_hash uint32 = 2
+	var primaryHash uint32 = 1
+	var secondaryHash uint32 = 2
 
 	filename = strings.ToLower(strings.Replace(filename, `/`, `\`, -1))
 
-	hashLittle2Str(filename, &secondary_hash, &primary_hash)
+	hashLittle2Str(filename, &secondaryHash, &primaryHash)
 
-	return uint64(primary_hash)*uint64(0x100000000) + uint64(secondary_hash)
+	return uint64(primaryHash)*uint64(0x100000000) + uint64(secondaryHash)
 }
 
 func hashLittle2Str(str string, pc, pb *uint32) {

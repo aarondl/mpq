@@ -13,9 +13,10 @@ import (
 var (
 	headerBETTable = []byte("BET\x1A")
 
-	errorBETTableBounds = errors.New("BET Table ended unexpectedly.")
+	errorBETTableBounds = errors.New("BET Table ended unexpectedly")
 )
 
+// BETTable from the MPQ Header.
 type BETTable struct {
 	Version  int
 	DataSize int

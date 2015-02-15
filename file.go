@@ -22,10 +22,16 @@ const (
 	fileCompressedMask = 0x0000FF00 // Mask for a file being compressed
 )
 
+// These errors are possible return values (along with others) from the mpq.Open() call.
 var (
-	ErrFileNotFound = errors.New("File not found in archive.")
-	ErrFileDeleted  = errors.New("File has been removed from the archive.")
-	ErrFileEmpty    = errors.New("File is empty.")
+	// ErrFileNotFound occurs on mpq.Open() when the filename given is
+	// not in the archive.
+	ErrFileNotFound = errors.New("File not found in archive")
+	// ErrFileDeleted occurs when the filename given is present in the BET/Block tables
+	// but has been flagged as deleted.
+	ErrFileDeleted = errors.New("File has been removed from the archive")
+	// ErrFileEmpty occurs when the file is of size 0 bytes inside the archive.
+	ErrFileEmpty = errors.New("File is empty")
 )
 
 // File represents a file in the MPQ archive.
@@ -68,7 +74,7 @@ func (m *MPQ) open(file *File) (io.Reader, error) {
 	}
 
 	if file.Flags&fileFlagSingleUnit == 0 {
-		return nil, errors.New("Cannot process multi-unit files.")
+		return nil, errors.New("Cannot process multi-unit files")
 	}
 
 	if file.Flags&fileFlagEncrypted != 0 {
@@ -84,10 +90,10 @@ func (m *MPQ) open(file *File) (io.Reader, error) {
 			if m.Header.FormatVersion >= mpqFormatVersion2 {
 				reader, err = newDecompressReader(reader, file.FileSize)
 			} else {
-				err = errors.New("Oldschool MPQ multiple compression is not supported.")
+				err = errors.New("Oldschool MPQ multiple compression is not supported")
 			}
 		} else if file.Flags&fileFlagImplode != 0 {
-			err = errors.New("PKWARE Implode Compression not supported.")
+			err = errors.New("PKWARE Implode Compression not supported")
 		}
 	}
 
@@ -151,7 +157,7 @@ func (m *MPQ) FileInfo(name string) (*File, error) {
 		return m.findFromHashAndBlock(name)
 	}
 
-	return nil, errors.New("HET, BET, Hash and Block tables are all unavailable.")
+	return nil, errors.New("HET, BET, Hash and Block tables are all unavailable")
 }
 
 func (m *MPQ) findFromHETAndBET(name string) (*File, error) {

@@ -7,12 +7,8 @@ import (
 
 const userDataHeaderSize = 16
 
-// UserData is additional data inside the MPQ.
+// UserData is found in the MPQ header.
 type UserData struct {
-	UserDataHeader
-}
-
-type UserDataHeader struct {
 	// offset off the user data.
 	offset int64
 	// MaxSize of user data
